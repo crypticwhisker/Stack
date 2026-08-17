@@ -19,3 +19,4 @@ Stack is a MTG lookup and card list management app
 - Task groups for loading extra card details
 
 ## Screenshots
+![Root tab view](Screenshots/root_tab_view.png)
