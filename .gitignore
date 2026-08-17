@@ -1,0 +1,15 @@
+# Xcode
+*.xcodeproj/
+xcuserdata/
+
+# Swift Package Manager
+.swiftpm/
+.build/
+
+# Build
+build/
+DerivedData/
+
+# Poops
+*.tmp
+*.DS_Store
