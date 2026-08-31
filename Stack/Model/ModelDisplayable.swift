@@ -18,7 +18,8 @@ extension ModelDisplayable {
     var imageURL: URL? {
         let endPoint = GetCardsID(
             scryfallID: scryfallID,
-            options: .init(format: "image", version: "normal")
+            format: .image,
+            version: .normal
         )
         
         do {

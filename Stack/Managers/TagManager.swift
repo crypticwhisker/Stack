@@ -21,9 +21,10 @@ extension FileManager {
 @Observable
 class TagManager {
     
-    private let client: ForgeClient = .shared
+    private let client: ForgeClient
     private let session = URLSession.shared
     private let fm = FileManager.default
+    private let decoder = JSONDecoder()
     
     var tags: [SFTag] = [] {
         didSet {
@@ -34,6 +35,12 @@ class TagManager {
     var tagsFile: URL {
         let documentsURL = fm.getDocumentsDirectory()
         return documentsURL.appendingPathComponent("oracle-tags.jsonl")
+    }
+    
+    init(
+        client: ForgeClient = ForgeClient(session: .scryfallSession())
+    ) {
+        self.client = client
     }
     
     private(set) var tagsByOracleID: [String: [SFTag]] = [:]
@@ -67,7 +74,7 @@ class TagManager {
             debugLog.info("Tag file is missing or out-of-date, updating...")
             
             // Grab latest tag file URL from Scryfall
-            guard let tagsURLResponse = try? await client.fetchBulkDataURLByType(for: "oracle-tags"),
+            guard let tagsURLResponse = try? await client.fetchBulkDataURL(bulkDataType: "oracle-tags"),
                   let tagsURL = URL(string: tagsURLResponse.jsonlDOwnloadURI) else {
                 return
             }
@@ -113,7 +120,7 @@ class TagManager {
             guard let lineData = trimmedLine.data(using: .utf8) else { continue }
             
             do {
-                let response = try client.decode(data: lineData, as: SFTag.self)
+                let response = try decoder.decode(SFTag.self, from: lineData)
                 tagResults.append(response)
             } catch {
                 print("Error: \(error)")

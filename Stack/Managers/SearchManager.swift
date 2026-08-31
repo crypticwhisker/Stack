@@ -14,8 +14,7 @@ import Forge
 @Observable
 class SearchManager {
     
-//    private let client: SFClient = .shared
-    private let client: ForgeClient = .shared
+    private let client: ForgeClient
     
     var query: String = ""
     var searchHistory: [String] = []
@@ -42,6 +41,12 @@ class SearchManager {
         case endReached
     }
     
+    init(
+        client: ForgeClient = ForgeClient(session: .scryfallSession())
+    ) {
+        self.client = client
+    }
+    
     // Random card
     func fetchRandomCard() async {
         do {
@@ -56,7 +61,7 @@ class SearchManager {
     func fetchSearchResults(for query: String) async {
         do {
             self.query = query
-            let searchResults = try await client.getCardsSearch(for: query)
+            let searchResults = try await client.getCardsSearch(query: query)
             result = searchResults
             cards = searchResults.data
             appState = .success
@@ -96,7 +101,7 @@ class SearchManager {
     // Cards for tapped set
     func fetchSetCards(for set: SFSet) async {
         do {
-            let fetchedSetCards = try await client.fetchSpecificURL(for: set.searchURI)
+            let fetchedSetCards = try await client.fetchSpecificURLMultiple(url: set.searchURI)
             result = fetchedSetCards
             cards = fetchedSetCards.data
             appState = .success
@@ -115,7 +120,7 @@ class SearchManager {
         pagination = .loadingNextPage
         
         do {
-            let nextPage = try await client.fetchSpecificURL(for: nextPageURL)
+            let nextPage = try await client.fetchSpecificURLMultiple(url: nextPageURL)
             result = nextPage
             cards.append(contentsOf: nextPage.data)
             pagination = nextPage.hasMore ? .loadedNextPage : .endReached
@@ -127,12 +132,11 @@ class SearchManager {
     // Debounced quick search
     func debounceSearch(for input: String) async -> [String] {
         
-//        guard !input.contains(":") else { return [] }
         guard input.rangeOfCharacter(from: CharacterSet(charactersIn: "!:><=")) == nil else { return [] }
         
         do {
             try await Task.sleep(for: .seconds(0.5)) // matches rate limit of scryfall
-            return try await client.fetchAutoComplete(for: input)
+            return try await client.fetchAutoComplete(query: input)
         } catch is CancellationError {
             debugLog.info("User is still typing, search task was cancelled")
         } catch {
