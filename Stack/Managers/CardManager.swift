@@ -34,7 +34,10 @@ class CardManager {
         case failure(String)
     }
     
-    init(card: SFCard? = nil, client: ForgeClient = .shared) {
+    init(
+        card: SFCard? = nil,
+        client: ForgeClient = ForgeClient(session: .scryfallSession())
+    ) {
         self.client = client
         self.card = card
         self.appState = (card == nil) ? .loading : .success
@@ -60,11 +63,11 @@ class CardManager {
         do {
             switch identifier {
             case .scryfallID(let scryfallID):
-                let fetchedCard = try await client.getSpecificCard(for: scryfallID)
+                let fetchedCard = try await client.getSpecificCard(id: scryfallID)
                 card = fetchedCard
                 appState = .success
             case .rawString(let rawString):
-                let fetchedCards = try await client.getCardsSearch(for: rawString)
+                let fetchedCards = try await client.getCardsSearch(query: rawString)
                 
                 /*
                  this is dumb
@@ -101,7 +104,7 @@ class CardManager {
         guard let card else { return }
         
         do {
-            let fetchedRulings = try await client.fetchRulingsForCard(for: card.rulingsURI)
+            let fetchedRulings = try await client.fetchRulingsForCard(scryfallID: card.rulingsURI)
             self.rulings = fetchedRulings
             debugLog.log("Rulings fetched for \(card.name): \(self.rulings.count)")
         } catch {
@@ -113,7 +116,7 @@ class CardManager {
         guard let card else { return }
         
         do {
-            let fetchedPrints = try await client.fetchSpecificURL(for: card.printsSearchURI)
+            let fetchedPrints = try await client.fetchSpecificURLMultiple(url: card.printsSearchURI)
             let filteredPrints = fetchedPrints.filter { $0.id != card.id}
             self.prints = filteredPrints
             debugLog.log("Prints fetched for \(card.name): \(self.prints.count)")
@@ -130,7 +133,7 @@ class CardManager {
             async let fetchedParts: [SFCard] = withTaskGroup(of: SFCard?.self) { group in
                 for part in allParts where part.name != card.name {
                     group.addTask {
-                        try? await self.client.fetchSpecificURLSingle(for: part.uri)
+                        try? await self.client.fetchSpecificURLSingle(cardURL: part.uri)
                     }
                 }
                 var results: [SFCard] = []
@@ -147,7 +150,7 @@ class CardManager {
         guard let card else { return }
         
         do {
-            let fetchedSet = try await client.fetchSpecificSet(for: card.setURI)
+            let fetchedSet = try await client.fetchSpecificSet(setURI: card.setURI)
             self.set = fetchedSet
             debugLog.log("Set fetched: \(fetchedSet.name)")
         } catch {

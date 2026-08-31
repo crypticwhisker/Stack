@@ -13,12 +13,14 @@ import Forge
 class SavedCardManager {
     
     let context: ModelContext
-    let client: ForgeClient = .shared
+    let client: ForgeClient
     
     init (
-        context: ModelContext
+        context: ModelContext,
+        client: ForgeClient = ForgeClient(session: .scryfallSession())
     ) {
         self.context = context
+        self.client = client
     }
     
     func addCardToCollection(card: ListCard, collection: ListCardFolder) {
@@ -71,7 +73,7 @@ class SavedCardManager {
     
     func updateSavedCard(card: ListCard) async {
         print("Checking if card price needs to be updated...")
-        guard card.lastUpdated.timeIntervalSinceNow >= 86400, let response = try? await client.fetchSpecificURLSingle(for: card.cardURL) else {
+        guard card.lastUpdated.timeIntervalSinceNow >= 86400, let response = try? await client.fetchSpecificURLSingle(cardURL: card.cardURL) else {
             print("Price is up-to-date, skipping")
             return
         }
