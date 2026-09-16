@@ -15,7 +15,7 @@ struct PerfectEdges: ViewModifier {
 }
 
 struct PerfectCornerShape: Shape {
-    func path(in rect: CGRect) -> Path {
+    nonisolated func path(in rect: CGRect) -> Path {
         let radius = rect.height / (89 / 3.1)
         var path = Path()
         path.addRoundedRect(in: rect, cornerSize: CGSize(width: radius, height: radius), style: .continuous)
