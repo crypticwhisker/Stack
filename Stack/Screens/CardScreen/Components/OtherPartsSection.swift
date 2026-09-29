@@ -43,5 +43,18 @@ struct OtherPartsSection: View {
 }
 
 #Preview {
-    #warning("TODO: Preview provider")
+    @Previewable @State var manager = CardManager(client: MockClient())
+
+    ScrollView {
+        if let card = manager.card {
+            OtherPartsSection(cards: manager.otherParts)
+                .padding(.vertical, 10)
+                .customDarkMode()
+        } else {
+            ProgressView()
+        }
+    }
+    .task {
+        await manager.setup(initialCard: nil, identifier: .rawString("Sauron, the Dark Lord"))
+    }
 }

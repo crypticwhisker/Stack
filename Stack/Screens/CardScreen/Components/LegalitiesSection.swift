@@ -63,5 +63,16 @@ struct LegalitiesSection: View {
 }
 
 #Preview {
-    #warning("TODO: Preview provider")
+    @Previewable @State var manager = CardManager(client: MockClient())
+
+    ScrollView {
+        if let card = manager.card {
+            LegalitiesSection(card: card)
+        } else {
+            ProgressView()
+        }
+    }
+    .task {
+        await manager.loadCard(for: .rawString("Sauron, the Dark Lord"))
+    }
 }

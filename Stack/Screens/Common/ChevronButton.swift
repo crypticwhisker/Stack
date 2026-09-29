@@ -27,5 +27,8 @@ struct ChevronButton<P: Hashable, Content: View>: View {
 }
 
 #Preview {
-    #warning("TODO: Preview provider")
+    ChevronButton(value: Route.searchResults("")) {
+        Text("Test")
+    }
+    .padding()
 }

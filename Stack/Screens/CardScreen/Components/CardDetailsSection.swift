@@ -54,5 +54,19 @@ struct CardDetailsSection: View {
 }
 
 #Preview {
-    #warning("TODO: Preview provider")
+    @Previewable @State var manager = CardManager(client: MockClient())
+
+    ScrollView {
+        if let card = manager.card {
+            CardDetailsSection(card: card, manager: manager)
+                .padding(.vertical, 10)
+                .customDarkMode()
+                .environment(Router())
+        } else {
+            ProgressView()
+        }
+    }
+    .task {
+        await manager.setup(initialCard: nil, identifier: .rawString("Sauron, the Dark Lord"))
+    }
 }

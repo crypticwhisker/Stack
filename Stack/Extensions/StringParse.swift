@@ -22,8 +22,11 @@ extension String {
         let parts: [parsedParts] = self.matches(of: tokenRegex).compactMap { match in
             if let token = match.output.token {
                 let clean = token.trimmingCharacters(in: .init(charactersIn: "{}")).replacingOccurrences(of: "/", with: "")
-                return .token(String(clean)) }
-            if let text = match.output.text { return .text(String(text)) }
+                return .token(String(clean))
+            }
+            if let text = match.output.text {
+                return .text(String(text))
+            }
             return nil
         }
         
@@ -38,7 +41,8 @@ extension String {
             case .text(let text):
                 result.append(NSAttributedString(string: text))
             case .token(let token):
-                let clean = token.trimmingCharacters(in: .init(charactersIn: "{}"))
+                let lower = token.lowercased()
+                let clean = lower.trimmingCharacters(in: .init(charactersIn: "{}"))
                 if let image = UIImage(named: clean) {
                     let attachment = NSTextAttachment()
                     attachment.image = image
