@@ -37,6 +37,15 @@ struct StaticCardThumb: View {
     }
 }
 
-#Preview {
-    #warning("TODO: Preview provider")
+#Preview(traits: .sizeThatFitsLayout) {
+    if let sample: SFCard = try? SampleDataDecoder.load("card_sauron") {
+        StaticCardThumb(card: sample)
+            .padding(10)
+    } else {
+        ContentUnavailableView(
+            "Could not load card",
+            systemImage: "slash.circle",
+            description: Text("Could not load requested sample card")
+        )
+    }
 }

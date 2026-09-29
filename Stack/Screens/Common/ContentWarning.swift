@@ -103,3 +103,15 @@ extension View {
         modifier(ContentWarning(card: card))
     }
 }
+
+#Preview {
+    SmallWarning()
+}
+
+#Preview {
+    MediumWarning(showContentWarning: .constant(true))
+}
+
+#Preview {
+    LargeWarning(showContentWarning: .constant(true))
+}

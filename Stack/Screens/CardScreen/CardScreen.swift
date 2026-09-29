@@ -17,6 +17,16 @@ struct CardScreen: View {
     
     @State private var manager: CardManager = CardManager()
     
+    init(
+        manager: CardManager = CardManager(),
+        initialCard: SFCard?,
+        cardIdentifier: CardIdentifier?
+    ) {
+        _manager = State(initialValue: manager)
+        self.initialCard = initialCard
+        self.cardIdentifier = cardIdentifier
+    }
+    
     let initialCard: SFCard?
     let cardIdentifier: CardIdentifier?
     
@@ -35,7 +45,7 @@ struct CardScreen: View {
                                 .padding(.bottom, 20)
                             CardText(card: card)
                             CardDetailsSection(card: card, manager: manager)
-                                .redacted(reason: manager.set ==  nil ? .placeholder : [])
+//                                .redacted(reason: manager.set ==  nil ? .placeholder : [])
                             if !manager.filteredParts.isEmpty {
                                 OtherPartsSection(cards: manager.filteredParts)
                             }
@@ -71,5 +81,13 @@ struct CardScreen: View {
 }
 
 #Preview {
-    #warning("TODO: Preview provider")
+    
+    @Previewable @State var manager = CardManager(client: MockClient())
+    
+    CardScreen(manager: manager, initialCard: nil, cardIdentifier: nil)
+        .environment(Router())
+        .task {
+            await manager.setup(initialCard: nil, identifier: .rawString("Sauron, the Dark Lord"))
+        }
+    
 }

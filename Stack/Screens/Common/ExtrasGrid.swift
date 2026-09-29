@@ -21,5 +21,17 @@ struct ExtrasGrid: View {
 }
 
 #Preview {
-    #warning("TODO: Preview provider")
+    @Previewable @State var manager = CardManager(client: MockClient())
+
+    ScrollView {
+        if let card = manager.card {
+            ExtrasGrid(navTitle: "Prints", cards: manager.prints)
+        } else {
+            ProgressView()
+        }
+    }
+    .task {
+        await manager.setup(initialCard: nil, identifier: .rawString("Sauron, the Dark Lord"))
+    }
+    
 }

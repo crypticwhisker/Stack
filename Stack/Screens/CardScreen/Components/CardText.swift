@@ -45,29 +45,34 @@ struct CardTextSection: View {
             VStack {
                 HStack {
                     Text(cardLike.name)
-                        .padding(3)
+                        .padding(.bottom, 3)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .font(.headline)
                     if let mana = cardLike.manaCost {
-                        ManaCost(stringToParse: mana)
+//                        ManaCost(stringToParse: mana)
+                        InlineSVGTest(string: mana)
+                            .shadow(color: .black, radius: 0.5, x: -0.5, y: 1.5)
                     }
                 }
             }
         case .typeLine:
             if let typeLine = cardLike.typeLine {
                 Text(typeLine)
-                    .padding(3)
+                    .padding(.bottom, 15)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .font(.subheadline)
             }
         case .textBox:
             if let oracleText = cardLike.oracleText {
-                MixedCardString(stringToNS: oracleText)
+//                MixedCardString(stringToNS: oracleText)
+                InlineSVGTest(string: oracleText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, 15)
             }
         case .flavorText:
             if let flavorText = cardLike.flavorText {
                 Text(flavorText)
-                    .padding(3)
+                    .padding(.bottom, 3)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .font(.system(.body, design: .serif))
                     .italic()
@@ -106,6 +111,19 @@ struct CardText: View {
     }
 }
 
-#Preview{
-    #warning("TODO: Preview provider")
+#Preview {
+    @Previewable @State var manager = CardManager(client: MockClient())
+
+    ScrollView {
+        if let card = manager.card {
+            CardText(card: card)
+                .padding(.vertical, 10)
+                .customDarkMode()
+        } else {
+            ProgressView()
+        }
+    }
+    .task {
+        await manager.loadCard(for: .rawString("Sauron, the Dark Lord"))
+    }
 }

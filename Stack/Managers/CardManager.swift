@@ -13,7 +13,7 @@ import Forge
 @Observable
 class CardManager {
     
-    private let client: ForgeClient
+    private let client: any SFClient
     
     private(set) var card: SFCard?
     
@@ -28,7 +28,7 @@ class CardManager {
     
     var appState: AppState = .loading
     
-    enum AppState {
+    enum AppState: Equatable {
         case loading
         case success
         case failure(String)
@@ -36,7 +36,7 @@ class CardManager {
     
     init(
         card: SFCard? = nil,
-        client: ForgeClient = ForgeClient(session: .scryfallSession())
+        client: SFClient = ForgeClient(session: .scryfallSession())
     ) {
         self.client = client
         self.card = card
@@ -104,7 +104,7 @@ class CardManager {
         guard let card else { return }
         
         do {
-            let fetchedRulings = try await client.fetchRulingsForCard(scryfallID: card.rulingsURI)
+            let fetchedRulings = try await client.fetchRulingsForCard(rulingURL: card.rulingsURI)
             self.rulings = fetchedRulings
             debugLog.log("Rulings fetched for \(card.name): \(self.rulings.count)")
         } catch {

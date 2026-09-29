@@ -57,5 +57,5 @@ struct OracleTagSection: View {
 }
 
 #Preview {
-    #warning("TODO: Preview provider")
+    // maybe some day lol
 }
