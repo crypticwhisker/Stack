@@ -45,7 +45,6 @@ struct CardScreen: View {
                                 .padding(.bottom, 20)
                             CardText(card: card)
                             CardDetailsSection(card: card, manager: manager)
-//                                .redacted(reason: manager.set ==  nil ? .placeholder : [])
                             if !manager.filteredParts.isEmpty {
                                 OtherPartsSection(cards: manager.filteredParts)
                             }

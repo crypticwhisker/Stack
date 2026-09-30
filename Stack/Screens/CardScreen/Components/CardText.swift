@@ -13,17 +13,9 @@ struct CardTextSection: View {
     let cardLike: CardLike
     
     var body: some View {
-        ZStack {
-            HStack {
-                VStack {
-                    ForEach(CardParts.allCases) { part in
-                        partView(part)
-                    }
-                }
-                if let lights = cardLike.attractionLights {
-                    UNFLights(lightsON: lights)
-                        .offset(x: 5)
-                }
+        VStack {
+            ForEach(CardParts.allCases) { part in
+                partView(part)
             }
         }
     }
@@ -33,6 +25,7 @@ struct CardTextSection: View {
         case typeLine // card type and expansion symbol
         case textBox // card text box w/oracle text
         case flavorText // card text box w/flavor text
+        case unflights // attraction lights
         case powerLine // power/toughness or loyalty or defense
         
         var id: Self { self }
@@ -49,8 +42,7 @@ struct CardTextSection: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .font(.headline)
                     if let mana = cardLike.manaCost {
-//                        ManaCost(stringToParse: mana)
-                        InlineSVGTest(string: mana)
+                        MixedCardString(string: mana)
                             .shadow(color: .black, radius: 0.5, x: -0.5, y: 1.5)
                     }
                 }
@@ -64,8 +56,7 @@ struct CardTextSection: View {
             }
         case .textBox:
             if let oracleText = cardLike.oracleText {
-//                MixedCardString(stringToNS: oracleText)
-                InlineSVGTest(string: oracleText)
+                MixedCardString(string: oracleText)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.bottom, 15)
             }
@@ -76,6 +67,12 @@ struct CardTextSection: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .font(.system(.body, design: .serif))
                     .italic()
+            }
+        case .unflights:
+            if let lights = cardLike.attractionLights {
+                UNFLights(lightsON: lights)
+                    .padding(.top, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         case .powerLine:
             if let powerLine = cardLike.pt {
