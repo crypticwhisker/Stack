@@ -16,9 +16,10 @@ struct RulingsSection: View {
         GroupBox("Rulings") {
             ForEach(rulings, id: \.self) { ruling in
                 VStack {
-                    MixedCardString(stringToNS: ruling.comment)
+                    MixedCardString(string: ruling.comment)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(ruling.publishedAt)
+                        .padding(.bottom, 5)
+                    Text("\(ruling.publishedAt) • \(ruling.source.uppercased())")
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .font(.system(.subheadline, design: .monospaced))
                         .foregroundStyle(.secondary)

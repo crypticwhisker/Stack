@@ -16,18 +16,18 @@ struct UNFLights: View {
     ]
  
     var body: some View {
-        VStack {
+        HStack {
             ForEach(1...6, id: \.self) { index in
                 ZStack {
                     Circle()
                         .fill(.white)
-                        .frame(height: 24)
-                        .scaledToFit()
+                        .frame(height: 22)
+//                        .scaledToFit()
                         .shadow(color: .black, radius: 1.5)
                     Circle()
                         .fill(lightsON.contains(index) ? lightColors[index - 1] : .light1)
-                        .frame(height: 20)
-                        .scaledToFit()
+                        .frame(height: 18)
+//                        .scaledToFit()
                     Text(index.description)
                         .foregroundStyle(.white)
                 }
