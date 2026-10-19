@@ -46,5 +46,13 @@ struct SetView: View {
 }
 
 #Preview {
-    #warning("TODO: Preview provider")
+    
+    @Previewable @State var searchManager = SearchManager(client: MockClient())
+    
+    SetView(set: PreviewData.set)
+        .environment(Router())
+        .task {
+            await searchManager.fetchSetCards(for: PreviewData.set)
+        }
+    
 }
