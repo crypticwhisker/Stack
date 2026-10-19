@@ -14,7 +14,7 @@ import Forge
 @Observable
 class SearchManager {
     
-    private let client: ForgeClient
+    private let client: any SFClient
     
     var query: String = ""
     var searchHistory: [String] = []
@@ -42,7 +42,7 @@ class SearchManager {
     }
     
     init(
-        client: ForgeClient = ForgeClient(session: .scryfallSession())
+        client: SFClient = ForgeClient(session: .scryfallSession())
     ) {
         self.client = client
     }

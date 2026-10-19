@@ -67,6 +67,13 @@ class CardManager {
                 card = fetchedCard
                 appState = .success
             case .rawString(let rawString):
+                
+                /*
+                 reminder to future me:
+                 .rawString option is needed to support scryfall's autocomplete endpoint as it only returns strings
+                 this path loads all matches for the tapped string and then filters down to the only result that has the same exact name
+                 */
+                
                 let fetchedCards = try await client.getCardsSearch(query: rawString)
                 
                 /*
