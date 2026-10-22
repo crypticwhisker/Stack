@@ -48,6 +48,7 @@ struct ListTab: View {
                 manager.removeCollection(at: indexSet, for: listCardFolders)
             }
         }
+        .scrollBounceBehavior(.basedOnSize)
         .customDarkMode()
         .overlay {
             if listCardFolders.isEmpty {
@@ -71,7 +72,6 @@ struct ListTab: View {
                 folderName = ""
             }
             Button("Create", role: .confirm) {
-//                _ = manager.createCollection(name: folderName, type: ListCardFolder.self)
                 _ = manager.createCollection(name: folderName)
                 folderName = ""
             }

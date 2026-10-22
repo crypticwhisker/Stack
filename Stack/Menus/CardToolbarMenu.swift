@@ -29,7 +29,7 @@ struct CardToolbarMenu: View {
     }
     
     var body: some View {
-        HStack {
+        Group {
             Menu("Add to list", systemImage: "list.dash") {
                 ForEach(listCardFolders) { folder in
                     Button("\(folder.name)", systemImage: "folder") {
@@ -72,7 +72,6 @@ struct CardToolbarMenu: View {
                 TextField("New List", text: $folderName)
                 Button("Cancel", role: .cancel) { }
                 Button("Create", role: .confirm) {
-//                    let newFolder = manager.createCollection(name: folderName, type: ListCardFolder.self)
                     let newFolder = manager.createCollection(name: folderName)
                     let newCard = ListCard(card: card, collection: newFolder)
                     manager.addCardToCollection(card: newCard, collection: newFolder)

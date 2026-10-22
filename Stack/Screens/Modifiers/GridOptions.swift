@@ -8,33 +8,39 @@
 import SwiftUI
 
 enum ViewMode: String, CaseIterable, Identifiable {
-    case singleGrid = "Single Row"
-    case doubleGrid = "Medium Grid"
-    case tripleGrid = "Small Grid"
+    case largeGrid = "Large Grid"
+    case mediumGrid = "Medium Grid"
+    case smallGrid = "Small Grid"
     case list = "List"
     
     var id: Self { self }
     
     var systemImage: String {
         switch self {
-        case .singleGrid: return "rectangle.portrait"
-        case .doubleGrid: return "square.grid.2x2"
-        case .tripleGrid: return "square.grid.3x2"
+        case .largeGrid: return "rectangle.portrait"
+        case .mediumGrid: return "square.grid.2x2"
+        case .smallGrid: return "square.grid.3x2"
         case .list: return "list.dash"
         }
     }
     
-    var columns: [GridItem] {
+    func columns(for sizeClass: UserInterfaceSizeClass?) -> [GridItem] {
+        
+        let count: Int
+        let isRegular = sizeClass == .regular
+        
         switch self {
-        case .singleGrid:
-            return [GridItem(.flexible())]
-        case .doubleGrid:
-            return [GridItem(.flexible()), GridItem(.flexible())]
-        case .tripleGrid:
-            return [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
+        case .largeGrid:
+            count = isRegular ? 2 : 1
+        case .mediumGrid:
+            count = isRegular ? 4 : 2
+        case .smallGrid:
+            count = isRegular ? 5 : 3
         case .list:
-            return [GridItem(.flexible())]
+            count = 1
         }
+        
+        return Array(repeating: GridItem(.flexible()), count: count)
     }
 }
 

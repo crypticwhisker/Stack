@@ -10,14 +10,16 @@ import Forge
 
 struct Grist: View {
     
-    @State private var viewMode: ViewMode = .doubleGrid
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    
+    @State private var viewMode: ViewMode = .mediumGrid
 
     var cards: [SFCard]
     let manager: SearchManager?
     
     var body: some View {
         ScrollView {
-            LazyVGrid(columns: viewMode.columns, spacing: 16) {
+            LazyVGrid(columns: viewMode.columns(for: horizontalSizeClass), spacing: 16) {
                 ForEach(cards) { card in
                     if viewMode != .list {
                         NavigationLink(value: Route.cardScreenFromCard(card)) {
@@ -65,7 +67,12 @@ struct Grist: View {
         }
         .animation(.easeInOut, value: viewMode)
         .toolbar {
-            GridOptions(viewMode: $viewMode)
+            if #available(anyAppleOS 27.1, *) {
+                GridOptions(viewMode: $viewMode)
+                    .axisBehavior(.verticalPreferred)
+            } else {
+                GridOptions(viewMode: $viewMode)
+            }
         }
     }
 }
