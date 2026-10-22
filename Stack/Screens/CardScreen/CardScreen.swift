@@ -11,9 +11,8 @@ import Forge
 
 struct CardScreen: View {
     
-    @AppStorage("ShowTags") var showTags = false
-    
     @Environment(Router.self) var router: Router
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     @State private var manager: CardManager = CardManager()
     
@@ -39,30 +38,42 @@ struct CardScreen: View {
                 CustomProgressView()
             case .success:
                 if let card = manager.card {
-                    ScrollView {
-                        LazyVStack {
+                    AdaptiveView {
+                        ScrollView {
                             AnimatedCardThumb(card: card)
+                                .padding(.horizontal)
                                 .padding(.bottom, 20)
-                            CardText(card: card)
-                            CardDetailsSection(card: card, manager: manager)
-                            if !manager.filteredParts.isEmpty {
-                                OtherPartsSection(cards: manager.filteredParts)
+                            CardBottom(card: card, manager: manager)
+                                .padding(.horizontal)
+                        }
+                        .scrollBounceBehavior(.basedOnSize)
+                    } regular: {
+                        HStack {
+                            AnimatedCardThumb(card: card)
+                                .frame(maxHeight: .infinity, alignment: .top)
+                                .containerRelativeFrame(.horizontal) { size, axis in
+                                    size * 0.4
+                                }
+                                .padding(.horizontal)
+                            ScrollView {
+                                CardBottom(card: card, manager: manager)
+                                    .padding(.horizontal)
                             }
-                            if !manager.prints.isEmpty {
-                                PrintsSection(parentCard: card, prints: manager.prints)
-                            }
-                            LegalitiesSection(card: card)
-                            if !manager.rulings.isEmpty {
-                                RulingsSection(rulings: manager.rulings)
-                            }
-                            if showTags == true {
-                                OracleTagSection(card: card)                                
-                            }
+                            .scrollBounceBehavior(.basedOnSize)
+                            .scrollEdgeEffectStyle(.soft, for: .top)
+                            .toolbarMinimizationBehavior(.never, for: .navigationBar)
                         }
                     }
                     .toolbar {
-                        ToolbarItem(placement: .primaryAction) {
-                            CardToolbarMenu(card: card)
+                        if #available(anyAppleOS 27.1, *) {
+                            ToolbarItemGroup(placement: .primaryAction) {
+                                CardToolbarMenu(card: card)
+                            }
+                            .axisBehavior(.verticalPreferred)
+                        } else {
+                            ToolbarItemGroup(placement: .primaryAction) {
+                                CardToolbarMenu(card: card)
+                            }
                         }
                     }
                 }
@@ -83,10 +94,12 @@ struct CardScreen: View {
     
     @Previewable @State var manager = CardManager(client: MockClient())
     
-    CardScreen(manager: manager, initialCard: nil, cardIdentifier: nil)
-        .environment(Router())
-        .task {
-            await manager.setup(initialCard: nil, identifier: .rawString("Sauron, the Dark Lord"))
-        }
+    NavigationStack {
+        CardScreen(manager: manager, initialCard: nil, cardIdentifier: nil)
+            .environment(Router())
+            .task {
+                await manager.setup(initialCard: nil, identifier: .rawString("Sauron, the Dark Lord"))
+            }
+    }
     
 }

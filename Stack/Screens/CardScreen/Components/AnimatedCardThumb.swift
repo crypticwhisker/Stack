@@ -40,9 +40,6 @@ struct AnimatedCardThumb: View {
                     StaticCardThumb(card: card, suppressShadow: true)
                 }
             }
-            .containerRelativeFrame(.horizontal) { size, axis in
-                size * 0.9
-            }
             .rotationEffect(.degrees(isRotated ? rotationDegrees : 0)) // needs to be before 3D effect so the axes work correctly
             .rotation3DEffect(
                 .degrees(flipDegrees),
@@ -51,8 +48,8 @@ struct AnimatedCardThumb: View {
             .scaleEffect(isScaled ? 0.75 : 1.0)
             .animation(.easeInOut(duration: 0.3), value: isRotated)
             .shadow(color: .black, radius: 3, x: 0, y: 5)
-            .padding(20)
-       
+            .padding(.bottom, 20)
+                   
             if card.hasMultipleFaces || card.isDualSided {
                 if let labels = card.transformLabels {
                     Button("\(labels.buttonLabel)", systemImage: "\(labels.imageLabel)") {
@@ -110,11 +107,9 @@ struct AnimatedCardThumb: View {
 #Preview {
     @Previewable @State var manager = CardManager(client: MockClient())
 
-    ScrollView {
+    Group {
         if let card = manager.card {
             AnimatedCardThumb(card: card)
-                .padding(.vertical, 10)
-                .customDarkMode()
         } else {
             ProgressView()
         }

@@ -50,7 +50,6 @@ struct GBOutsideLabel: GroupBoxStyle {
             .padding()
             .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
-        .padding(.horizontal)
         .padding(.bottom, 10)
     }
 }
