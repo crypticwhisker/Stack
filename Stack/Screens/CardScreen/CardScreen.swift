@@ -65,16 +65,10 @@ struct CardScreen: View {
                         }
                     }
                     .toolbar {
-                        if #available(anyAppleOS 27.1, *) {
-                            ToolbarItemGroup(placement: .primaryAction) {
-                                CardToolbarMenu(card: card)
-                            }
-                            .axisBehavior(.verticalPreferred)
-                        } else {
-                            ToolbarItemGroup(placement: .primaryAction) {
-                                CardToolbarMenu(card: card)
-                            }
+                        ToolbarItemGroup(placement: .primaryAction) {
+                            CardToolbarMenu(card: card)
                         }
+                        .axisBehavior(.verticalPreferred)
                     }
                 }
             }

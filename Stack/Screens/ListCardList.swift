@@ -58,13 +58,13 @@ struct ListCardList: View {
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                                 .padding(.bottom, 1)
-                            Text("\(card.price.formatted(.currency(code: "USD")))")
+                            Text(card.priceAsString)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .onAppear {
+                    .onFirstAppear {
                         Task {
                             await manager.updateSavedCard(card: card)                            
                         }

@@ -67,12 +67,8 @@ struct Grist: View {
         }
         .animation(.easeInOut, value: viewMode)
         .toolbar {
-            if #available(anyAppleOS 27.1, *) {
-                GridOptions(viewMode: $viewMode)
-                    .axisBehavior(.verticalPreferred)
-            } else {
-                GridOptions(viewMode: $viewMode)
-            }
+            GridOptions(viewMode: $viewMode)
+                .axisBehavior(.verticalPreferred)
         }
     }
 }

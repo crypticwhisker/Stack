@@ -20,7 +20,7 @@ nonisolated protocol CardCollection: PersistentModel {
 nonisolated protocol SavedCard: PersistentModel {
     associatedtype ContainerType: CardCollection
     var name: String { get }
-    var price: Double { get set }
+    var price: Decimal { get set }
     var cardURL: String { get set}
     var lastUpdated: Date { get set }
     var collection: ContainerType { get set }

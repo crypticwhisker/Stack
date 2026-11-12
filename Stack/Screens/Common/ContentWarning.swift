@@ -39,7 +39,7 @@ struct MediumWarning: View {
                 .buttonStyle(.glass)
                 Link("More Info", destination: URL(string: "https://scryfall.com/docs/faqs/why-do-some-cards-have-content-warnings-20")!)
                     .buttonStyle(.glass)
-                    .handleOpenURLInApp()
+                    .onOpenURL(prefersInApp: true)
             }
             .padding(.horizontal)
             .foregroundStyle(.white)
@@ -67,7 +67,7 @@ struct LargeWarning: View {
                 .buttonStyle(.glass)
                 Link("More Info", destination: URL(string: "https://scryfall.com/docs/faqs/why-do-some-cards-have-content-warnings-20")!)
                     .buttonStyle(.glass)
-                    .handleOpenURLInApp()
+                    .onOpenURL(prefersInApp: true)
             }
             .padding(.horizontal)
             .foregroundStyle(.white)

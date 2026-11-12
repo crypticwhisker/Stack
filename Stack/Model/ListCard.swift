@@ -15,7 +15,7 @@ nonisolated class ListCard: SavedCard {
     
     // API data
     var name: String
-    var price: Double
+    var price: Decimal
     var scryfallID: String
     var cardURL: String
     var collectorNumber: String
@@ -34,15 +34,22 @@ nonisolated class ListCard: SavedCard {
         collection: ListCardFolder
     ) {
         self.name = card.name
-        self.price = card.priceAsDouble
+        self.price = card.priceAsDecimal
         self.scryfallID = card.id
-        self.cardURL = card.scryfallURI
+        self.cardURL = card.uri
         self.collectorNumber = card.collectorNumber
         self.finish = card.cardFinish
         self.collection = collection
         self.dateAdded = .now
         self.lastUpdated = .now
         self.internalID = .init()
+    }
+}
+
+extension ListCard {
+    var priceAsString: String {
+        guard price > 0 else { return "No price data" }
+        return price.formatted(.currency(code: "USD"))
     }
 }
 

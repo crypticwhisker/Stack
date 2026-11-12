@@ -16,18 +16,19 @@ class SearchManager {
     
     private let client: any SFClient
     
-    var query: String = ""
-    var searchHistory: [String] = []
-    
+    /// Sets the search value so that other views such as SearchResults can show what was searched
+    private(set) var query: String = ""
+    /// Result property is used to carry additional details, such as SFList.hasMore or SFList.nextPage
     private(set) var result: SFList<SFCard>? = nil
     private(set) var cards: [SFCard] = []
     private(set) var sets: [SFSet] = []
-    private(set) var prints: [SFCard] = []
-    
     private(set) var randomCard: SFCard? = nil
     
-    var appState: AppState = .loading
-    var pagination: Pagination = .loadedNextPage
+    private(set) var quickResults: [String] = []
+    private(set) var searchHistory: [String] = []
+    
+    private(set) var appState: AppState = .loading
+    private(set) var paginationState: PaginationState = .loadedNextPage
     
     enum AppState {
         case loading
@@ -35,7 +36,7 @@ class SearchManager {
         case failure(String)
     }
     
-    enum Pagination {
+    enum PaginationState {
         case loadingNextPage
         case loadedNextPage
         case endReached
@@ -115,34 +116,124 @@ class SearchManager {
     // Pagination
     func fetchNextPage(for nextPageURL: String) async {
 
-        guard pagination != .loadingNextPage else { return }
+        guard paginationState != .loadingNextPage else { return }
         
-        pagination = .loadingNextPage
+        paginationState = .loadingNextPage
         
         do {
             let nextPage = try await client.fetchSpecificURLMultiple(url: nextPageURL)
             result = nextPage
             cards.append(contentsOf: nextPage.data)
-            pagination = nextPage.hasMore ? .loadedNextPage : .endReached
+            paginationState = nextPage.hasMore ? .loadedNextPage : .endReached
         } catch {
             debugLog.error("\(error.localizedDescription)")
         }
     }
     
     // Debounced quick search
-    func debounceSearch(for input: String) async -> [String] {
+    func debounceQuickSearch(for input: String) async {
         
-        guard input.rangeOfCharacter(from: CharacterSet(charactersIn: "!:><=")) == nil else { return [] }
+        guard input.rangeOfCharacter(from: CharacterSet(charactersIn: "!:><=")) == nil else {
+            debugLog.info("Syntax operator found, returning empty quick search array")
+            self.quickResults = []
+            return
+        }
         
         do {
             try await Task.sleep(for: .seconds(0.5)) // matches rate limit of scryfall
-            return try await client.fetchAutoComplete(query: input)
+            let results = try await client.fetchAutoComplete(query: input)
+            self.quickResults = results
         } catch is CancellationError {
             debugLog.info("User is still typing, search task was cancelled")
         } catch {
             debugLog.error("Autocomplete errror: \(error)")
         }
-        return []
     }
     
+    func parseSearchStringAtCursor(
+        string: String,
+        cursor: String.Index
+    ) -> ParsedSearchToken? {
+        
+        // Find the current token boundaries
+        let leftBound = string[..<cursor]
+            .lastIndex(of: " ")
+            .map { string.index(after: $0) }
+        ?? string.startIndex
+        
+        let rightBound = string[cursor...]
+            .firstIndex(of: " ")
+        ?? string.endIndex
+        
+        let token = string[leftBound..<rightBound]
+        
+        // Find the operator
+        let operators = SyntaxOperator.allCases.sorted { $0.rawValue.count > $1.rawValue.count }
+        
+        guard
+            let matchedOperator = operators.first(where: { token.range(of: $0.rawValue) != nil }),
+            let operatorRange = token.range(of: matchedOperator.rawValue)
+                else {
+            return nil
+        }
+        
+        // Extract the key and value around the operator
+        let key = String(token[..<operatorRange.lowerBound])
+        let value = String(token[operatorRange.upperBound...])
+        let valueRange = operatorRange.upperBound..<rightBound
+        
+        // Find the syntax definition for this key
+        guard
+            let syntax = SyntaxCatalog.all.first(where: { $0.key.matches(key) }),
+            syntax.operators.contains(matchedOperator)
+                else {
+            return nil
+        }
+        
+        // Build suggestions
+        let recommendations: [String]
+        
+        if value.isEmpty {
+            recommendations = syntax.validValues.map(\.value)
+        } else {
+            
+            // First check for matching aliases so that strings like "color:u" will recommend "blue"
+            let aliasMatches = syntax.validValues.filter { item in
+                item.aliases.contains {
+                    $0.localizedCaseInsensitiveCompare(value) == .orderedSame
+                }
+            }
+            
+            if !aliasMatches.isEmpty {
+                recommendations = aliasMatches.map(\.value)
+            } else {
+                recommendations = syntax.validValues.filter { item in
+                    item.value.range(of: value, options: [.anchored, .caseInsensitive]) != nil &&
+                    item.value.localizedCaseInsensitiveCompare(value) != .orderedSame
+                }
+                .map(\.value)
+            }
+        }
+        
+        return ParsedSearchToken(
+            key: key,
+            op: matchedOperator,
+            value: value,
+            recommendations: recommendations,
+            replacementRange: valueRange
+        )
+    }
+ 
+    func addToSearchHistory(_ string: String) {
+        searchHistory.append(string)
+    }
+    
+    func clearSearchHistory() {
+        searchHistory.removeAll()
+    }
+    
+    func clearQuickResults() {
+        quickResults.removeAll()
+    }
+        
 }

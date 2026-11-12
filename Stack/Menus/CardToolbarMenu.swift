@@ -81,7 +81,7 @@ struct CardToolbarMenu: View {
                 Text("Enter a name for this list")
             }
         }
-        .handleOpenURLInApp()
+        .onOpenURL(prefersInApp: true)
     }
 }
 

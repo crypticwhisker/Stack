@@ -23,7 +23,7 @@ struct PaginationLoader: View {
     
     var body: some View {
         if let hasMore = manager.result, let nextPage = hasMore.nextPage {
-            switch manager.pagination {
+            switch manager.paginationState {
             case .loadingNextPage:
                 CustomProgressView()
             case .loadedNextPage:
