@@ -63,36 +63,21 @@ class SavedCardManager {
             context.delete(card)
         }
     }
-    
-//    func removeCardFromCollection<C: SavedCard>(at offsets: IndexSet, for cards: [C]) where C: PersistentModel {
-//        for index in offsets {
-//            let card = cards[index]
-//            context.delete(card)
-//        }
-//    }
-    
+        
     func updateSavedCard(card: ListCard) async {
-        print("Checking if card price needs to be updated...")
-        guard card.lastUpdated.timeIntervalSinceNow >= 86400, let response = try? await client.fetchSpecificURLSingle(cardURL: card.cardURL) else {
-            print("Price is up-to-date, skipping")
-            return
+        
+        guard Date.now.timeIntervalSince(card.lastUpdated) >= 43200 else { return }
+        
+        do {
+            let response = try await client.fetchSpecificURLSingle(cardURL: card.cardURL)
+            card.price = response.priceAsDecimal
+            card.lastUpdated = .now
+            try? context.save()
+        } catch {
+            print(error)
         }
-        print("Updating card price")
-        card.price = response.priceAsDouble
-        try? context.save()
     }
     
-//    func updateSavedCard<C: SavedCard>(card: inout C) async {
-//        print("Checking if card price needs to be updated...")
-//        guard card.lastUpdated.timeIntervalSinceNow >= 86400, let response = try? await client.fetchSpecificURLSingle(for: card.cardURL) else {
-//            print("Price is up-to-date, skipping")
-//            return
-//        }
-//        print("Updating card price")
-//        card.price = response.priceAsDouble
-//        try? context.save()
-//    }
-
     func updateMultipleSavedCards<C: SavedCard>(cards: [C]) async {
         // Need to investigate how to best update model objects in the background
         // https://useyourloaf.com/blog/swiftdata-background-tasks/

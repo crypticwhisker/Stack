@@ -43,7 +43,7 @@ struct CardDetailsSection: View {
 //                        Spacer()
                         Link("?", destination: URL(string: "https://mtg.wiki/page/Reserved_List")!)
                             .buttonStyle(.glass)
-                            .handleOpenURLInApp()
+                            .onOpenURL(prefersInApp: true)
                     }
                     .padding(.top, 10)
                 }

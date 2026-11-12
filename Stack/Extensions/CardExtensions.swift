@@ -40,14 +40,24 @@ extension SFCard {
         contentWarning ?? false
     }
     
-    nonisolated var priceAsDouble: Double {
-        guard let price = prices.usd, let dp = Double(price) else { return 0 }
-        return dp
+    nonisolated var priceForFinish: String? {
+        if nonfoil {
+            return prices.usd
+        } else if foil {
+            return prices.usdFoil
+        } else {
+            return prices.usdEtched
+        }
+    }
+    
+    nonisolated var priceAsDecimal: Decimal {
+        guard let price = priceForFinish else { return 0 }
+        return Decimal(string: price) ?? 0
     }
     
     var priceAsString: String {
-        guard priceAsDouble > 0 else { return "No price data" }
-        return priceAsDouble.formatted(.currency(code: "USD"))
+        guard priceAsDecimal > 0 else { return "No price data" }
+        return priceAsDecimal.formatted(.currency(code: "USD"))
     }
     
     var hasReleased: Bool {

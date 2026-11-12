@@ -12,17 +12,53 @@ struct SearchTab: View {
     @Environment(Router.self) private var router
     
     @State private var isShowingSettings = false
-    @State private var isShowingProgressOverlay = false
     @State private var isSearching = false
-    @State private var searchTabManager = SearchManager()
+    
+    @State private var searchManager = SearchManager()
     @State private var searchText = ""
-    @State private var debouncedMatches: [String] = []
+    @State private var searchSelection: TextSelection?
+    
+    private var parsedSearchToken: ParsedSearchToken? {
+        guard
+            isSearching,
+            !searchText.isEmpty,
+            let searchSelection,
+            case let .selection(range) = searchSelection.indices
+        else {
+            return nil
+        }
+        
+        let cursor = range.lowerBound
+        
+        guard cursor == searchText.endIndex || searchText.indices.contains(cursor) else {
+            return nil
+        }
+        
+        return searchManager.parseSearchStringAtCursor(
+            string: searchText,
+            cursor: cursor
+        )
+    }
+    
+    private var syntaxSuggestions: [String] {
+        parsedSearchToken?.recommendations ?? []
+    }
     
     var body: some View {
         List {
-            if isSearching && !debouncedMatches.isEmpty {
+            if let parsedSearchToken, !parsedSearchToken.recommendations.isEmpty {
+                Section("Syntax suggestions") {
+                    ForEach(parsedSearchToken.recommendations, id: \.self) { suggestion in
+                        Button(suggestion) {
+                            searchText.replaceSubrange(parsedSearchToken.replacementRange, with: suggestion)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            if !searchManager.quickResults.isEmpty {
                 Section("Quick results") {
-                    ForEach(debouncedMatches, id: \.self) { match in
+                    ForEach(searchManager.quickResults, id: \.self) { match in
                         NavigationLink(value: Route.cardScreenFromIdentifier(.rawString(match))) {
                             Text(match)
                         }
@@ -31,43 +67,36 @@ struct SearchTab: View {
             }
         }
         .searchable(text: $searchText, isPresented: $isSearching, prompt: "Search for a card")
+        .searchSelection($searchSelection)
         .autocorrectionDisabled(true)
         .textInputAutocapitalization(.never)
         .onSubmit(of: .search) {
             router.searchTabRouter.navigationPath.append(Route.searchResults(searchText))
-            if !searchTabManager.searchHistory.contains(searchText) {
-                searchTabManager.searchHistory.append(searchText)
+            if !searchManager.searchHistory.contains(searchText) {
+                searchManager.addToSearchHistory(searchText)
             }
         }
         .customDarkMode()
         .task(id: searchText) {
-            if !searchText.isEmpty {
-                debouncedMatches = await searchTabManager.debounceSearch(for: searchText)
+            guard !searchText.isEmpty else {
+                searchManager.clearQuickResults()
+                return
             }
-        }
-        .onChange(of: searchText) { oldValue, newValue in
-            if newValue.isEmpty {
-                debouncedMatches.removeAll()
-            }
+            await searchManager.debounceQuickSearch(for: searchText)
         }
         .sheet(isPresented: $isShowingSettings) {
             SettingsView()
         }
         .overlay {
-            if isShowingProgressOverlay {
-                CustomProgressView()
-            }
-        }
-        .overlay {
-            if debouncedMatches.isEmpty {
+            if searchManager.quickResults.isEmpty && syntaxSuggestions.isEmpty {
                 ContentUnavailableView {
-                    Label(searchTabManager.searchHistory.isEmpty ? "Start Typing" : "Search History", systemImage: "magnifyingglass")
+                    Label(searchManager.searchHistory.isEmpty ? "Start Typing" : "Search History", systemImage: "magnifyingglass")
                 } description: {
-                    if searchTabManager.searchHistory.isEmpty {
+                    if searchManager.searchHistory.isEmpty {
                         Text("Start typing for quick results or press enter to see full search results")
                     } else {
                         VStack(alignment: .leading, spacing: 5) {
-                            ForEach(searchTabManager.searchHistory, id: \.self) { searchHistory in
+                            ForEach(searchManager.searchHistory, id: \.self) { searchHistory in
                                 Button {
                                     router.searchTabRouter.navigationPath.append(Route.searchResults(searchHistory))
                                 } label: {
@@ -83,12 +112,12 @@ struct SearchTab: View {
                         .padding(.vertical, 10)
                     }
                 } actions: {
-                    if !searchTabManager.searchHistory.isEmpty {
+                    if !searchManager.searchHistory.isEmpty {
                         Button {
-                            searchTabManager.searchHistory.removeAll()
+                            searchManager.clearSearchHistory()
                         } label: {
                             Label {
-                               Text("Clear search history")
+                                Text("Clear search history")
                             } icon: {
                                 Image(systemName: "x.circle")
                                     .foregroundColor(.red)
@@ -109,10 +138,8 @@ struct SearchTab: View {
             ToolbarItem(placement: .automatic) {
                 Button("Random card", systemImage: "dice") {
                     Task {
-                        isShowingProgressOverlay.toggle()
-                        await searchTabManager.fetchRandomCard()
-                        isShowingProgressOverlay.toggle()
-                        if let randomCard = searchTabManager.randomCard {
+                        await searchManager.fetchRandomCard()
+                        if let randomCard = searchManager.randomCard {
                             router.searchTabRouter.navigationPath.append(Route.cardScreenFromCard(randomCard))
                         }
                     }
